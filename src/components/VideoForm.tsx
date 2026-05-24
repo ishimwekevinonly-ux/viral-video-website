@@ -14,8 +14,10 @@ interface VideoFormProps {
 export default function VideoForm({ initialData, mode }: VideoFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [title, setTitle] = useState(initialData?.title ?? "");
@@ -23,6 +25,7 @@ export default function VideoForm({ initialData, mode }: VideoFormProps) {
     initialData?.description ?? "",
   );
   const [youtubeId, setYoutubeId] = useState(initialData?.youtubeId ?? "");
+  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(
     initialData?.thumbnailUrl ?? "",
   );
@@ -77,6 +80,31 @@ export default function VideoForm({ initialData, mode }: VideoFormProps) {
     }
   }
 
+  async function handleVideoUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVideoUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        setVideoUrl(data.url);
+      } else {
+        setError(data.error ?? "Video upload failed");
+      }
+    } catch {
+      setError("Failed to upload video");
+    } finally {
+      setVideoUploading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -86,16 +114,25 @@ export default function VideoForm({ initialData, mode }: VideoFormProps) {
       return;
     }
 
+    if (!videoUrl.trim() && !youtubeId.trim()) {
+      setError("Please provide a local video file or a YouTube URL/ID.");
+      return;
+    }
+
     setSaving(true);
+
+    const finalYoutubeId = videoUrl.trim()
+      ? ""
+      : extractYoutubeId(youtubeId.trim());
 
     const videoData = {
       title: title.trim(),
       description: description.trim(),
-      youtubeId: extractYoutubeId(youtubeId.trim()),
+      youtubeId: finalYoutubeId,
       thumbnailUrl:
         thumbnailUrl.trim() ||
         `https://picsum.photos/seed/${Date.now()}/640/360`,
-      videoUrl: "",
+      videoUrl: videoUrl.trim(),
       duration: duration.trim() || "0:00",
       category,
       tags: tags
@@ -204,6 +241,50 @@ export default function VideoForm({ initialData, mode }: VideoFormProps) {
               onChange={(e) => setDuration(e.target.value)}
               placeholder="e.g. 12:34"
               className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-white placeholder-gray-500 outline-none transition-colors focus:border-red-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-xl border border-white/10 bg-[#111] p-6">
+        <h3 className="text-lg font-semibold text-white">Video File</h3>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          {videoUrl && (
+            <div className="w-full rounded-xl border border-white/10 bg-[#0c0c0c] p-4">
+              <video
+                controls
+                src={videoUrl}
+                className="w-full rounded-lg bg-black"
+              />
+            </div>
+          )}
+          <div className="flex-1 space-y-3">
+            <div>
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={videoUploading}
+                className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+              >
+                {videoUploading ? "Uploading video..." : "Upload Video File"}
+              </button>
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+              />
+            </div>
+            <div className="text-xs text-gray-500">
+              Upload a video file from your device. If you prefer, paste a direct video URL below.
+            </div>
+            <input
+              type="text"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="/uploads/my-video.mp4 or https://..."
+              className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-red-500"
             />
           </div>
         </div>

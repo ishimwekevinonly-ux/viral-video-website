@@ -10,10 +10,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/quicktime",
+  ];
   if (!allowedTypes.includes(file.type)) {
     return NextResponse.json(
-      { error: "Invalid file type. Only JPEG, PNG, WebP, and GIF allowed." },
+      {
+        error:
+          "Invalid file type. Only JPEG, PNG, WebP, GIF, MP4, WebM, OGG, and MOV allowed.",
+      },
       { status: 400 },
     );
   }

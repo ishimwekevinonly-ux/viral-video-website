@@ -30,15 +30,29 @@ export default function VideoPlayer({ video }: { video: Video }) {
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-2xl bg-black">
-        <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-          <iframe
-            className="absolute inset-0 h-full w-full"
-            src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=0&rel=0`}
-            title={video.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
+        {video.videoUrl?.trim() ? (
+          <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={video.videoUrl}
+              controls
+            />
+          </div>
+        ) : video.youtubeId ? (
+          <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=0&rel=0`}
+              title={video.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <div className="flex h-72 items-center justify-center text-center text-white">
+            No video source available.
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
