@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoCard from "@/components/VideoCard";
-import { getVideoById, getRelatedVideos, videos } from "@/lib/videos";
+import { getVideoById, getRelatedVideos, getVideos } from "@/lib/dynamic-videos";
 
-export function generateStaticParams() {
-  return videos.map((v) => ({ id: v.id }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function VideoPage({
   params,
@@ -20,6 +18,7 @@ export default async function VideoPage({
   }
 
   const related = getRelatedVideos(video);
+  const allVideos = getVideos();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -35,7 +34,7 @@ export default async function VideoPage({
               ? related.map((v) => (
                   <VideoCard key={v.id} video={v} size="small" />
                 ))
-              : videos
+              : allVideos
                   .filter((v) => v.id !== video.id)
                   .slice(0, 4)
                   .map((v) => (

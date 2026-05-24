@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import VideoGrid from "@/components/VideoGrid";
 import CategoryPills from "@/components/CategoryPills";
-import { categories, getVideosByCategory } from "@/lib/videos";
+import { categories, getVideosByCategory } from "@/lib/dynamic-videos";
 
-export function generateStaticParams() {
-  return categories
-    .filter((c) => c.slug !== "all")
-    .map((c) => ({ slug: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

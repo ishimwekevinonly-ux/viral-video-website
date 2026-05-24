@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import VideoGrid from "@/components/VideoGrid";
-import { getTrendingVideos } from "@/lib/videos";
+import { getTrendingVideos } from "@/lib/dynamic-videos";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Trending Videos - ViralHub",
