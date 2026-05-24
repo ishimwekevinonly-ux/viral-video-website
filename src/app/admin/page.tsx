@@ -10,6 +10,7 @@ export default function AdminDashboard() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchVideos() {
@@ -27,6 +28,22 @@ export default function AdminDashboard() {
     await fetch(`/api/videos/${id}`, { method: "DELETE" });
     setVideos((prev) => prev.filter((v) => v.id !== id));
     setDeletingId(null);
+  }
+
+  async function handleToggleTrending(video: Video) {
+    setUpdatingId(video.id);
+    const res = await fetch(`/api/videos/${video.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ trending: !video.trending }),
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      setVideos((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+    }
+
+    setUpdatingId(null);
   }
 
   const totalViews = videos.reduce((sum, v) => sum + v.views, 0);
@@ -135,6 +152,27 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleTrending(video)}
+                        disabled={updatingId === video.id}
+                        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+                        title={video.trending ? "Unmark trending" : "Mark trending"}
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.449a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.449a1 1 0 00-1.176 0l-3.37 2.449c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.01 9.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z"
+                          />
+                        </svg>
+                      </button>
                       <Link
                         href={`/admin/videos/${video.id}/edit`}
                         className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
